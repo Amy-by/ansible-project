@@ -1,0 +1,47 @@
+---
+- name: 配置Web节点
+  hosts: web
+  become: true
+  tasks:
+    - name: 安装Nginx
+      apt:
+        name: nginx
+        state: present
+        update_cache: true
+
+    - name: 创建自定义首页（带UTF-8编码）
+      copy:
+        content: |
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+              <meta charset="UTF-8">
+              <title>Web节点 - 1</title>
+          </head>
+          <body>
+              <h1>Web节点 - 1</h1>
+              <p>这是一个测试页面，用于验证中文显示是否正常。</p>
+          </body>
+          </html>
+        dest: /var/www/html/index.nginx-debian.html
+        mode: '0644'
+
+    - name: 配置Nginx响应头字符集
+      lineinfile:
+        path: /etc/nginx/nginx.conf
+        insertafter: 'http {'
+        line: '    charset utf-8;'
+      notify:
+        - restart nginx
+
+    - name: 启动Nginx并设置开机启动
+      service:
+        name: nginx
+        state: started
+        enabled: true
+
+  handlers:
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
