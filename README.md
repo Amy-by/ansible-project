@@ -38,7 +38,7 @@ ansible-project/
 ### **部署步骤**
 1. **克隆仓库**
    ```bash
-   git clone https://github.com/your-username/ansible-project.git
+   git clone https://github.com/Amy-by/ansible-project.git
    cd ansible-project
    ```
 
