@@ -1,0 +1,59 @@
+---
+- name: 配置DB节点
+  hosts: db
+  become: true
+  gather_facts: true
+  tasks:
+    - name: 安装MySQL服务器
+      apt:
+        name: mariadb-server
+        state: present
+        update_cache: true
+
+    - name: 启动MySQL并设置开机启动
+      service:
+        name: mariadb
+        state: started
+        enabled: true
+
+    - name: 安装Python MySQL驱动
+      apt:
+        name: python3-pymysql
+        state: present
+
+    - name: 设置MySQL root密码
+      mysql_user:
+        name: root
+        password: '123456'
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+
+    - name: 创建测试数据库
+      mysql_db:
+        name: test_db
+        state: present
+        login_user: root
+        login_password: '123456'
+
+    - name: 创建测试用户
+      mysql_user:
+        name: test_user
+        password: '123456'
+        priv: 'test_db.*:ALL'
+        host: '%'
+        state: present
+        login_user: root
+        login_password: '123456'
+
+    - name: 允许远程访问
+      lineinfile:
+        path: /etc/mysql/mariadb.conf.d/50-server.cnf
+        regexp: '^bind-address'
+        line: 'bind-address = 0.0.0.0'
+      notify:
+        - restart mariadb
+
+  handlers:
+    - name: restart mariadb
+      service:
+        name: mariadb
+        state: restarted
